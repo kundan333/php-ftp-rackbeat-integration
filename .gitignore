@@ -1,0 +1,37 @@
+# Ignore Composer dependencies
+/vendor/
+
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore PHPUnit result cache
+.phpunit.result.cache
+
+# Ignore coverage reports
+coverage/
+
+# Ignore Composer lock file
+composer.lock
+
+# Ignore node_modules if any frontend dependencies are used
+node_modules/
+
+# Ignore environment variables
+.env
+
+# Ignore build artifacts
+/build/
+dist/
