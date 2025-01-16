@@ -35,13 +35,13 @@ class RackbeatClient
 
         // Create the order in Rackbeat
         $orderPayload = [
-            'customer_id' => $customer['id'],
-            'layout_id' => null,
+            'customer_id' => $customer['number'],
+            'layout_id' => $customer['layout_id'],
             'employee_id' => null,
-            'our_reference_id' => null,
+            'our_reference_id' => null, //Ordrekontor MR
             'delivery_responsible_id' => null,
             'your_reference_id' => null,
-            'payment_terms_id' => null,
+            'payment_terms_id' => $customer['payment_terms_id'],
             'delivery_terms' => null,
             'other_reference' => $orderData['their_reference'],
             'vat_zone' => 'domestic',
@@ -75,7 +75,7 @@ class RackbeatClient
             'custom_fields' => null,
         ];
 
-        $response = $this->client->post('/orders/drafts', [
+        $response = $this->client->post('api/orders/drafts', [
             'json' => $orderPayload,
         ]);
 
@@ -92,29 +92,36 @@ class RackbeatClient
         $orderData = [];
 
         // Extract customer EAN number
-        $customerEanNodes = $xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp01/ns:e01_3039');
+        $customerEanNodes = $xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp01/ns:e01_3039');
         $orderData['customer_ean'] = (string) ($customerEanNodes[0] ?? '');
 
+        // Look up the customer in Rackbeat using the EAN number
+        // $customer = $this->getCustomerByEan($orderData['customer_ean']);
+        // if (!$customer) {
+        //     throw new \Exception('Customer not found');
+        // }
+        // exit();
         // Extract other fields
-        $orderData['delivery_address'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp04/ns:e01_3042')[0] ?? '');
+        // $orderData['delivery_address'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp04/ns:e01_3042')[0] ?? '');
         $orderData['their_reference'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:BGM/ns:cmp02/ns:e01_1004')[0] ?? '');
         $orderData['order_number'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:BGM/ns:cmp02/ns:e01_1004')[0] ?? '');
         $orderData['delivery_date'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:DTM/ns:cmp01/ns:e02_2380')[0] ?? '');
         $orderData['order_lines'] = $this->parseOrderLines($xml->xpath('//ns:Body/ns:ORDERS/ns:g028/ns:LIN'));
 
         // Extract address fields
-        $orderData['address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp03/ns:e01_3036')[0] ?? '');
-        $orderData['address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp04/ns:e01_3042')[0] ?? '');
-        $orderData['address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:e02_3164')[0] ?? '');
-        $orderData['address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:e03_3251')[0] ?? '');
-        $orderData['address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:e04_3207')[0] ?? '');
+        $orderData['address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp03/ns:e01_3036')[0] ?? '');
+        $orderData['address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp04/ns:e01_3042')[0] ?? '');
+        $orderData['address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e02_3164')[0] ?? '');
+        $orderData['address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e03_3251')[0] ?? '');
+        $orderData['address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e04_3207')[0] ?? '');
 
         // Extract delivery address fields
-        $orderData['delivery_address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="DP"]/ns:cmp03/ns:e01_3036')[0] ?? '');
-        $orderData['delivery_address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="DP"]/ns:cmp04/ns:e01_3042')[0] ?? '');
-        $orderData['delivery_address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="DP"]/ns:e02_3164')[0] ?? '');
-        $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="DP"]/ns:e03_3251')[0] ?? '');
-        $orderData['delivery_address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="DP"]/ns:e04_3207')[0] ?? '');
+        $orderData['delivery_address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:cmp03/ns:e01_3036')[0] ?? '');
+        $orderData['delivery_address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:cmp04/ns:e01_3042')[0] ?? '');
+        $orderData['delivery_address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e02_3164')[0] ?? '');
+        $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e03_3251')[0] ?? '');
+        $orderData['delivery_address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e04_3207')[0] ?? '');
+
 
         return $orderData;
     }
@@ -132,9 +139,18 @@ class RackbeatClient
         return $lines;
     }
 
+    public function getCustomer($customerId)
+    {
+        $response = $this->client->get('api/customers/' . $customerId);
+
+        $responseData = json_decode($response->getBody(), true);
+
+        return $responseData['customer'] ?? null;
+    }
+
     private function getCustomerByEan($ean)
     {
-        $response = $this->client->get('/customers', [
+        $response = $this->client->get('api/customers', [
             'query' => ['ean' => $ean],
         ]);
 
@@ -148,14 +164,14 @@ class RackbeatClient
 
     public function checkOrderStatus($orderId)
     {
-        $response = $this->client->get("/orders/{$orderId}");
+        $response = $this->client->get("api/orders/{$orderId}");
         $order = json_decode($response->getBody(), true);
         return $order['status'];
     }
 
     public function updateOrderStatus($orderId, $status)
     {
-        $response = $this->client->put("/orders/{$orderId}", [
+        $response = $this->client->put("api/orders/{$orderId}", [
             'json' => ['status' => $status],
         ]);
 
