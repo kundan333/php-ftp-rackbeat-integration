@@ -103,9 +103,10 @@ class RackbeatClient
         // exit();
         // Extract other fields
         // $orderData['delivery_address'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp04/ns:e01_3042')[0] ?? '');
-        $orderData['their_reference'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:BGM/ns:cmp02/ns:e01_1004')[0] ?? '');
+        // ORDERS/g002[2]/g005/CTA/cmp01/e02_3412
+        $orderData['their_reference'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:g005/ns:CTA/ns:cmp01/ns:e02_3412')[0] ?? '');
         $orderData['order_number'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:BGM/ns:cmp02/ns:e01_1004')[0] ?? '');
-        $orderData['delivery_date'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:DTM/ns:cmp01/ns:e02_2380')[0] ?? '');
+        $orderData['delivery_date'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:DTM/ns:cmp01/ns:e02_2380')[0] ?? '');        
         $orderData['order_lines'] = $this->parseOrderLines($xml->xpath('//ns:Body/ns:ORDERS/ns:g028/ns:LIN'));
 
         // Extract address fields
@@ -121,7 +122,6 @@ class RackbeatClient
         $orderData['delivery_address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e02_3164')[0] ?? '');
         $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e03_3251')[0] ?? '');
         $orderData['delivery_address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e04_3207')[0] ?? '');
-
 
         return $orderData;
     }
