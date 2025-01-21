@@ -87,41 +87,35 @@ class RackbeatClient
     {
         $xml = simplexml_load_string($xmlData);
         $namespaces = $xml->getNamespaces(true);
-        $xml->registerXPathNamespace('ns', $namespaces['']);
+        $xml->registerXPathNamespace('cbc', $namespaces['cbc']);
+        $xml->registerXPathNamespace('cac', $namespaces['cac']);
 
         $orderData = [];
 
         // Extract customer EAN number
-        $customerEanNodes = $xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp01/ns:e01_3039');
+        $customerEanNodes = $xml->xpath('//cac:DeliveryLocation/cbc:ID');
         $orderData['customer_ean'] = (string) ($customerEanNodes[0] ?? '');
 
-        // Look up the customer in Rackbeat using the EAN number
-        // $customer = $this->getCustomerByEan($orderData['customer_ean']);
-        // if (!$customer) {
-        //     throw new \Exception('Customer not found');
-        // }
-        // exit();
         // Extract other fields
-        // $orderData['delivery_address'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002/ns:NAD[ns:e01_3035="BY"]/ns:cmp04/ns:e01_3042')[0] ?? '');
-        // ORDERS/g002[2]/g005/CTA/cmp01/e02_3412
-        $orderData['their_reference'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:g005/ns:CTA/ns:cmp01/ns:e02_3412')[0] ?? '');
-        $orderData['order_number'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:BGM/ns:cmp02/ns:e01_1004')[0] ?? '');
-        $orderData['delivery_date'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:DTM/ns:cmp01/ns:e02_2380')[0] ?? '');        
-        $orderData['order_lines'] = $this->parseOrderLines($xml->xpath('//ns:Body/ns:ORDERS/ns:g028/ns:LIN'));
+        $orderData['their_reference'] = (string) ($xml->xpath('//cbc:CustomerReference')[0] ?? '');
+        $orderData['order_number'] = (string) ($xml->xpath('//cbc:ID')[0] ?? '');
+        $orderData['delivery_date'] = (string) ($xml->xpath('//cac:RequestedDeliveryPeriod/cbc:StartDate')[0] ?? '');
+        $orderData['order_lines'] = $this->parseOrderLines($xml->xpath('//cac:OrderLine'));
 
         // Extract address fields
-        $orderData['address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp03/ns:e01_3036')[0] ?? '');
-        $orderData['address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:cmp04/ns:e01_3042')[0] ?? '');
-        $orderData['address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e02_3164')[0] ?? '');
-        $orderData['address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e03_3251')[0] ?? '');
-        $orderData['address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[2]/ns:NAD/ns:e04_3207')[0] ?? '');
+        $orderData['address_name'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PartyName/cbc:Name')[0] ?? '');
+        $orderData['address_street'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName')[0] ?? '');
+        $orderData['address_city'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:CityName')[0] ?? '');
+        $orderData['address_zipcode'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:PostalZone')[0] ?? '');
+        $orderData['address_country'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode')[0] ?? '');
 
         // Extract delivery address fields
-        $orderData['delivery_address_name'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:cmp03/ns:e01_3036')[0] ?? '');
-        $orderData['delivery_address_street'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:cmp04/ns:e01_3042')[0] ?? '');
-        $orderData['delivery_address_city'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e02_3164')[0] ?? '');
-        $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e03_3251')[0] ?? '');
-        $orderData['delivery_address_country'] = (string) ($xml->xpath('//ns:Body/ns:ORDERS/ns:g002[3]/ns:NAD/ns:e04_3207')[0] ?? '');
+        $orderData['delivery_address_name'] = (string) ($xml->xpath('//cac:DeliveryLocation/cbc:Name')[0] ?? '');
+        $orderData['delivery_address_street'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:StreetName')[0] ?? '');
+        $orderData['delivery_address_city'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:CityName')[0] ?? '');
+        $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:PostalZone')[0] ?? '');
+        $orderData['delivery_address_country'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode')[0] ?? '');
+
 
         return $orderData;
     }
@@ -131,9 +125,17 @@ class RackbeatClient
         $lines = [];
         foreach ($orderLines as $line) {
             $lines[] = [
-                'product_id' => (string) $line->cmp01->e01_7140,
-                'quantity' => (int) $line->QTY->cmp01->e02_6060,
-                'price' => (float) $line->MOA->cmp01->e02_5004,
+                'item_id' => (string) $line->xpath('cac:LineItem/cac:Item/cac:BuyersItemIdentification/cbc:ID')[0],
+                'name' => (string) $line->xpath('cac:LineItem/cac:Item/cbc:Name')[0],
+                'quantity' => (string) $line->xpath('cac:LineItem/cbc:Quantity')[0],
+                'line_price' => (string) $line->xpath('cac:LineItem/cbc:LineExtensionAmount')[0],
+                'cost_price' => null,
+                'variations' => [],
+                'location_id' => null,
+                'discount_percentage' => null,
+                'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:ClassifiedTaxCategory/cbc:Percent')[0],
+                'unit_id' => (string) $line->xpath('cac:LineItem/cbc:Quantity/@unitCode')[0],
+                'custom_fields' => [],
             ];
         }
         return $lines;
