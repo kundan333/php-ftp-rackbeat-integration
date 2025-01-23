@@ -139,16 +139,16 @@ class RackbeatClient
         foreach ($orderLines as $line) {
             $lines[] = [
                 'item_id' => (string) $line->xpath('cac:LineItem/cac:Item/cac:SellersItemIdentification/cbc:ID')[0],
-                'name' => (string) $line->xpath('cac:LineItem/cac:Item/cbc:Name')[0],
+                // 'name' => (string) $line->xpath('cac:LineItem/cac:Item/cbc:Name')[0],
                 'quantity' => (string) $line->xpath('cac:LineItem/cbc:Quantity')[0],
-                'line_price' => (string) $line->xpath('cac:LineItem/cbc:LineExtensionAmount')[0],
+                // 'line_price' => (string) $line->xpath('cac:LineItem/cbc:LineExtensionAmount')[0],
                 // 'cost_price' => null,
                 // 'variations' => [],
                 // 'location_id' => null,
                 // 'discount_percentage' => null,
-                'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent')[0],
+                // 'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent')[0],
                 // 'unit_id' => (string) $line->xpath('cac:LineItem/cbc:Quantity/@unitCode')[0],
-                'custom_fields' => [],
+                // 'custom_fields' => [],
             ];
         }
         // var_dump($lines);exit;
