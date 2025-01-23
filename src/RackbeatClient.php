@@ -167,7 +167,7 @@ class RackbeatClient
     private function getCustomerByEan($ean)
     {
         $response = $this->client->get('api/customers', [
-            'query' => ['ean' => $ean],
+            'query' => ['simple_filter[ean]' => $ean],
         ]);
 
         $responseData = json_decode($response->getBody(), true);
