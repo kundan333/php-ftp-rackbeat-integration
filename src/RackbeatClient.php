@@ -29,57 +29,71 @@ class RackbeatClient
 
         // Look up the customer in Rackbeat using the EAN number
         $customer = $this->getCustomerByEan($orderData['customer_ean']);
+
+        //var_dump($customer['number']);exit();
+
         if (!$customer) {
             throw new \Exception('Customer not found');
         }
+
+        $employeeId= $this->getEmployeeIDName('Ordrekontor MR');
+        
 
         // Create the order in Rackbeat
         $orderPayload = [
             'customer_id' => $customer['number'],
             'layout_id' => $customer['layout_id'],
-            'employee_id' => null,
-            'our_reference_id' => null, //Ordrekontor MR
-            'delivery_responsible_id' => null,
-            'your_reference_id' => null,
+            'employee_id' => $employeeId,
+            'our_reference_id' => $employeeId, //Ordrekontor MR
+            // 'delivery_responsible_id' => null,
+            // 'your_reference_id' => null,
             'payment_terms_id' => $customer['payment_terms_id'],
-            'delivery_terms' => null,
+            // 'delivery_terms' => null,
             'other_reference' => $orderData['their_reference'],
             'vat_zone' => 'domestic',
             'heading' => $orderData['order_number'],
             'currency' => 'NOK',
-            'currency_rate' => null,
-            'number' => null,
-            'barcode' => null,
-            'pdf_layout' => null,
+            // 'currency_rate' => null,
+            // 'number' => null,
+            // 'barcode' => null,
+            // 'pdf_layout' => null,
             'lines' => $orderData['order_lines'],
-            'general_discount' => null,
+            // 'general_discount' => null,
             'deliver_at' => $orderData['delivery_date'],
             'order_date' => date('Y-m-d'),
-            'note' => null,
+            // 'note' => null,
             'address_name' => $orderData['address_name'],
             'address_street' => $orderData['address_street'],
-            'address_street2' => null,
-            'address_state' => null,
+            // 'address_street2' => null,
+            // 'address_state' => null,
             'address_city' => $orderData['address_city'],
             'address_zipcode' => $orderData['address_zipcode'],
             'address_country' => $orderData['address_country'],
             'delivery_address_name' => $orderData['delivery_address_name'],
             'delivery_address_street' => $orderData['delivery_address_street'],
-            'delivery_address_street2' => null,
-            'delivery_address_state' => null,
+            // 'delivery_address_street2' => null,
+            // 'delivery_address_state' => null,
             'delivery_address_city' => $orderData['delivery_address_city'],
             'delivery_address_zipcode' => $orderData['delivery_address_zipcode'],
             'delivery_address_country' => $orderData['delivery_address_country'],
             'billing_address' => [],
             'delivery_address' => [],
-            'custom_fields' => null,
+            // 'custom_fields' => null,
         ];
+
+
+        //  var_dump(json_encode( $orderPayload));exit();
 
         $response = $this->client->post('api/orders/drafts', [
             'json' => $orderPayload,
         ]);
 
         $responseData = json_decode($response->getBody(), true);
+
+        // var_dump($responseData);exit;
+
+        file_put_contents(__DIR__ . '/response.txt', json_encode($responseData, JSON_PRETTY_PRINT));
+
         return $responseData['id'];
     }
 
@@ -116,7 +130,6 @@ class RackbeatClient
         $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:PostalZone')[0] ?? '');
         $orderData['delivery_address_country'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode')[0] ?? '');
 
-
         return $orderData;
     }
 
@@ -125,19 +138,20 @@ class RackbeatClient
         $lines = [];
         foreach ($orderLines as $line) {
             $lines[] = [
-                'item_id' => (string) $line->xpath('cac:LineItem/cac:Item/cac:BuyersItemIdentification/cbc:ID')[0],
+                'item_id' => (string) $line->xpath('cac:LineItem/cac:Item/cac:SellersItemIdentification/cbc:ID')[0],
                 'name' => (string) $line->xpath('cac:LineItem/cac:Item/cbc:Name')[0],
                 'quantity' => (string) $line->xpath('cac:LineItem/cbc:Quantity')[0],
                 'line_price' => (string) $line->xpath('cac:LineItem/cbc:LineExtensionAmount')[0],
-                'cost_price' => null,
-                'variations' => [],
-                'location_id' => null,
-                'discount_percentage' => null,
-                'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:ClassifiedTaxCategory/cbc:Percent')[0],
-                'unit_id' => (string) $line->xpath('cac:LineItem/cbc:Quantity/@unitCode')[0],
+                // 'cost_price' => null,
+                // 'variations' => [],
+                // 'location_id' => null,
+                // 'discount_percentage' => null,
+                'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent')[0],
+                // 'unit_id' => (string) $line->xpath('cac:LineItem/cbc:Quantity/@unitCode')[0],
                 'custom_fields' => [],
             ];
         }
+        // var_dump($lines);exit;
         return $lines;
     }
 
@@ -158,10 +172,18 @@ class RackbeatClient
 
         $responseData = json_decode($response->getBody(), true);
 
-        // Log API response
-        error_log('API Response: ' . print_r($responseData, true));
+        return $responseData['customers'][0] ?? null;
+    }
 
-        return $responseData[0] ?? null;
+    private function getEmployeeIDName($name)
+    {
+        $response = $this->client->get('api/employees', [
+            'query' => ['name' => $name],
+        ]);
+
+        $responseData = json_decode($response->getBody(), true);
+
+        return $responseData['employees'][0]['number'] ?? '';
     }
 
     public function checkOrderStatus($orderId)
