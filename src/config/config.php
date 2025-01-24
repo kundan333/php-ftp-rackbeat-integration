@@ -1,10 +1,10 @@
 <?php
 return [
     'ftp' => [
-        'host' => 'your_sftp_host', // Example: 'sftp4.logiq.no'
-        'port' => 22, // Example: 2222
-        'username' => 'your_sftp_username', // Example: 'hartmnrdc'
-        'password' => 'your_sftp_password', // Example: 'iWmshPu7d'
+        'host' => 'your_sftp_host', // Example: 'sftp.example.com'
+        'port' => 22, // Example: 22
+        'username' => 'your_sftp_username', // Example: 'hartmann'
+        'password' => 'your_sftp_password', // Example: 'pass123'
     ],
     'rackbeat' => [
         'api_url' => 'https://api.rackbeat.com', 
