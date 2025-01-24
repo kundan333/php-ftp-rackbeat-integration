@@ -4,20 +4,20 @@ namespace App;
 
 class OrderProcessor
 {
-    private $ftpClient;
+    private $sftpClient;
     private $rackbeatClient;
     private $xmlHelper;
 
     public function __construct($ftpClient, $rackbeatClient, $xmlHelper)
     {
-        $this->ftpClient = $ftpClient;
+        $this->sftpClient = $ftpClient;
         $this->rackbeatClient = $rackbeatClient;
         $this->xmlHelper = $xmlHelper;
     }
 
     public function processOrders()
     {
-        $files = $this->ftpClient->listFiles();
+        $files = $this->sftpClient->listFiles();
         foreach ($files as $file) {
             if ($this->isOrderFile($file)) {
                 $localFile = $this->downloadOrderFile($file);
@@ -36,7 +36,7 @@ class OrderProcessor
     private function downloadOrderFile($file)
     {
         $localFile = '/path/to/local/directory/' . basename($file);
-        $this->ftpClient->downloadFile($file, $localFile);
+        $this->sftpClient->downloadFile($file, $localFile);
         return $localFile;
     }
 
@@ -46,7 +46,7 @@ class OrderProcessor
         if ($status === 'confirmed') {
             $orderData = $this->rackbeatClient->getOrderData($orderId);
             $this->updateXmlFile($orderData);
-            $this->ftpClient->uploadFile('/path/to/local/directory/' . $orderId . '.xml', $orderId . '.xml');
+            $this->sftpClient->uploadFile('/path/to/local/directory/' . $orderId . '.xml', $orderId . '.xml');
         }
     }
 

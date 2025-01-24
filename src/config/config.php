@@ -1,17 +1,17 @@
 <?php
 return [
     'ftp' => [
-        'host' => 'ftp.example.com',
-        'username' => 'ftp_user',
-        'password' => 'ftp_password',
-        'remote_directory' => '/path/to/orders',
+        'host' => 'your_sftp_host', // Example: 'sftp4.logiq.no'
+        'port' => 22, // Example: 2222
+        'username' => 'your_sftp_username', // Example: 'hartmnrdc'
+        'password' => 'your_sftp_password', // Example: 'iWmshPu7d'
     ],
     'rackbeat' => [
-        'api_url' => 'https://api.rackbeat.com',
-        'api_key' => 'your_api_key',
-        'api_secret' => 'your_api_secret',
+        'api_url' => 'https://api.rackbeat.com', 
+        'api_key' => 'your_rackbeat_api_key', // Example: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...'
     ],
     'order' => [
-        'confirmation_directory' => '/path/to/confirmations',
+        'remote_order_directory' => 'your_remote_order_directory', // Example: '/2hartmnrdc'
+        'remote_confirmation_directory' => 'your_remote_confirmation_directory', // Example: '/2logiq'
     ],
 ];
