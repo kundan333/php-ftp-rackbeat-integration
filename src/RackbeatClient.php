@@ -33,7 +33,7 @@ class RackbeatClient
         //var_dump($customer['number']);exit();
 
         if (!$customer) {
-            throw new \Exception('Customer not found');
+            throw new \Exception('Customer not found with ean: ' . $orderData['customer_ean']);
         }
 
         $employeeId= $this->getEmployeeIDName('Ordrekontor MR');
@@ -49,7 +49,7 @@ class RackbeatClient
             // 'your_reference_id' => null,
             'payment_terms_id' => $customer['payment_terms_id'],
             // 'delivery_terms' => null,
-            'other_reference' => $orderData['their_reference'],
+            'other_reference' => $orderData['their_reference']??'',
             'vat_zone' => 'domestic',
             'heading' => $orderData['order_number'],
             'currency' => 'NOK',
@@ -82,7 +82,6 @@ class RackbeatClient
         ];
 
 
-        //  var_dump(json_encode( $orderPayload));exit();
 
         $response = $this->client->post('api/orders/drafts', [
             'json' => $orderPayload,
@@ -90,21 +89,25 @@ class RackbeatClient
 
         $responseData = json_decode($response->getBody(), true);
 
-        // var_dump($responseData);exit;
+       // file_put_contents(__DIR__ . '/response.txt', json_encode($responseData, JSON_PRETTY_PRINT));
 
-        file_put_contents(__DIR__ . '/response.txt', json_encode($responseData, JSON_PRETTY_PRINT));
+        if (!isset($responseData['order']['number'])) {
+            return null;
+        }
 
-        return $responseData['id'];
+        return $responseData['order']['number'];
     }
 
     private function parseXmlData($xmlData)
     {
+        $orderData = [];
+
+        try {
         $xml = simplexml_load_string($xmlData);
+        
         $namespaces = $xml->getNamespaces(true);
         $xml->registerXPathNamespace('cbc', $namespaces['cbc']);
         $xml->registerXPathNamespace('cac', $namespaces['cac']);
-
-        $orderData = [];
 
         // Extract customer EAN number
         $customerEanNodes = $xml->xpath('//cac:DeliveryLocation/cbc:ID');
@@ -130,6 +133,11 @@ class RackbeatClient
         $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:PostalZone')[0] ?? '');
         // $orderData['delivery_address_country'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode')[0] ?? '');
         $orderData['delivery_address_country'] ="Norge";
+        } catch (\Throwable $e) {
+            file_put_contents(__DIR__ . '/../error.txt', $e->getMessage());
+        }
+
+
         return $orderData;
     }
 
@@ -201,4 +209,32 @@ class RackbeatClient
 
         return json_decode($response->getBody(), true);
     }
+
+    public function getOrderByNumber($orderNumber)
+    {
+        $response = $this->client->get("api/orders", [
+            'query' => ['simple_filter[number]' => $orderNumber],
+        ]);
+
+        $orderData = json_decode($response->getBody(), true);
+
+
+        if (isset($orderData['orders']) && count($orderData['orders']) > 0) {
+            return $orderData['orders'][0];
+        }
+
+        return null;
+    }
+
+    public function checkOrderIsBooked($orderData){
+
+        if ($orderData !== null && isset($orderData['is_booked']) && $orderData['is_booked'] === true) {
+            return true;
+        }
+        return false;
+
+    }
+
+
+
 }
