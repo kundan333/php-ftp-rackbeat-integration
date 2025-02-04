@@ -71,7 +71,7 @@ class RackbeatClient
             'address_country' => $orderData['address_country'],
             'delivery_address_name' => $orderData['delivery_address_name'],
             'delivery_address_street' => $orderData['delivery_address_street'],
-            // 'delivery_address_street2' => null,
+            'delivery_address_street2' =>  $orderData['delivery_address_street2'],
             // 'delivery_address_state' => null,
             'delivery_address_city' => $orderData['delivery_address_city'],
             'delivery_address_zipcode' => $orderData['delivery_address_zipcode'],
@@ -133,6 +133,7 @@ class RackbeatClient
         // Extract delivery address fields
         $orderData['delivery_address_name'] = (string) ($xml->xpath('//cac:DeliveryLocation/cbc:Name')[0] ?? '');
         $orderData['delivery_address_street'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:StreetName')[0] ?? '');
+        $orderData['delivery_address_street2'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:AdditionalStreetName')[0] ?? '');
         $orderData['delivery_address_city'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:CityName')[0] ?? '');
         $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:PostalZone')[0] ?? '');
         $orderData['delivery_address_email'] = (string) ($xml->xpath('//cac:Delivery/cac:DeliveryParty/cac:Contact/cbc:ElectronicMail')[0] ?? '');
