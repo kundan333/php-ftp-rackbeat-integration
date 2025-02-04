@@ -4,7 +4,7 @@ require 'vendor/autoload.php';
 
 use App\OrderProcessor;
 use App\RackbeatClient;
-use App\Helpers\XmlHelper;
+// use App\Helpers\XmlHelper;
 use App\SftpClient;
 
 // Configuration
@@ -12,9 +12,9 @@ $config = require 'src/config/config.php';
 
 // Initialize RackbeatClient, XmlHelper, and SftpClient
 $rackbeatClient = new RackbeatClient($config['rackbeat']['api_url'], $config['rackbeat']['api_key']);
-$xmlHelper = new XmlHelper();
+// $xmlHelper = new XmlHelper();
 $sftpClient = new SftpClient($config['ftp']['host'], $config['ftp']['port'], $config['ftp']['username'], $config['ftp']['password']);
-$orderProcessor = new OrderProcessor($sftpClient, $rackbeatClient, $xmlHelper);
+$orderProcessor = new OrderProcessor($sftpClient, $rackbeatClient);
 
 // Define local directory to save orders
 $localOrderDirectory = __DIR__ . '/orders';

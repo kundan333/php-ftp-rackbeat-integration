@@ -49,7 +49,7 @@ class RackbeatClient
             // 'your_reference_id' => null,
             'payment_terms_id' => $customer['payment_terms_id'],
             // 'delivery_terms' => null,
-            'other_reference' => $orderData['their_reference']??'',
+            // 'other_reference' => $orderData['their_reference']??'',
             'vat_zone' => 'domestic',
             'heading' => $orderData['order_number'],
             'currency' => 'NOK',
@@ -64,7 +64,7 @@ class RackbeatClient
             // 'note' => null,
             'address_name' => $orderData['address_name'],
             'address_street' => $orderData['address_street'],
-            // 'address_street2' => null,
+            'address_street2' => $orderData['address_street2'],
             // 'address_state' => null,
             'address_city' => $orderData['address_city'],
             'address_zipcode' => $orderData['address_zipcode'],
@@ -77,7 +77,10 @@ class RackbeatClient
             'delivery_address_zipcode' => $orderData['delivery_address_zipcode'],
             'delivery_address_country' => $orderData['delivery_address_country'],
             'billing_address' => [],
-            'delivery_address' => [],
+            'delivery_address' => [
+                'email'=>$orderData['delivery_address_email'],
+            'phone'=>$orderData['delivery_address_phone']
+        ],
             // 'custom_fields' => null,
         ];
 
@@ -110,20 +113,21 @@ class RackbeatClient
         $xml->registerXPathNamespace('cac', $namespaces['cac']);
 
         // Extract customer EAN number
-        $customerEanNodes = $xml->xpath('//cac:DeliveryLocation/cbc:ID');
+        $customerEanNodes = $xml->xpath('//cac:AccountingCustomerParty/cac:Party/cbc:EndpointID');
         $orderData['customer_ean'] = (string) ($customerEanNodes[0] ?? '');
 
         // Extract other fields
-        $orderData['their_reference'] = (string) ($xml->xpath('//cbc:CustomerReference')[0] ?? '');
+        // $orderData['their_reference'] = (string) ($xml->xpath('//cbc:CustomerReference')[0] ?? '');
         $orderData['order_number'] = (string) ($xml->xpath('//cbc:ID')[0] ?? '');
         $orderData['delivery_date'] = (string) ($xml->xpath('//cac:RequestedDeliveryPeriod/cbc:StartDate')[0] ?? '');
         $orderData['order_lines'] = $this->parseOrderLines($xml->xpath('//cac:OrderLine'));
 
         // Extract address fields
-        $orderData['address_name'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PartyName/cbc:Name')[0] ?? '');
-        $orderData['address_street'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName')[0] ?? '');
-        $orderData['address_city'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:CityName')[0] ?? '');
-        $orderData['address_zipcode'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cbc:PostalZone')[0] ?? '');
+        $orderData['address_name'] = (string) ($xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name')[0] ?? '');
+        $orderData['address_street'] = (string) ($xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName')[0] ?? '');
+        $orderData['address_street2'] = (string) ($xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:AdditionalStreetName')[0] ?? '');
+        $orderData['address_city'] = (string) ($xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:CityName')[0] ?? '');
+        $orderData['address_zipcode'] = (string) ($xml->xpath('//cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:PostalZone')[0] ?? '');
         // $orderData['address_country'] = (string) ($xml->xpath('//cac:BuyerCustomerParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode')[0] ?? '');
         $orderData['address_country'] ="Norge";
         // Extract delivery address fields
@@ -131,6 +135,8 @@ class RackbeatClient
         $orderData['delivery_address_street'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:StreetName')[0] ?? '');
         $orderData['delivery_address_city'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:CityName')[0] ?? '');
         $orderData['delivery_address_zipcode'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cbc:PostalZone')[0] ?? '');
+        $orderData['delivery_address_email'] = (string) ($xml->xpath('//cac:Delivery/cac:DeliveryParty/cac:Contact/cbc:ElectronicMail')[0] ?? '');
+        $orderData['delivery_address_phone'] = (string) ($xml->xpath('//cac:Delivery/cac:DeliveryParty/cac:Contact/cbc:Telephone')[0] ?? '');
         // $orderData['delivery_address_country'] = (string) ($xml->xpath('//cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode')[0] ?? '');
         $orderData['delivery_address_country'] ="Norge";
         } catch (\Throwable $e) {

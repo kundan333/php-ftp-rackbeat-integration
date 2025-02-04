@@ -6,13 +6,13 @@ class OrderProcessor
 {
     private $sftpClient;
     private $rackbeatClient;
-    private $xmlHelper;
+    // private $xmlHelper;
 
-    public function __construct($ftpClient, $rackbeatClient, $xmlHelper)
+    public function __construct($ftpClient, $rackbeatClient)
     {
         $this->sftpClient = $ftpClient;
         $this->rackbeatClient = $rackbeatClient;
-        $this->xmlHelper = $xmlHelper;
+        // $this->xmlHelper = $xmlHelper;
     }
 
     public function processOrders($remote_dir,$local_dir)
@@ -123,21 +123,21 @@ class OrderProcessor
         return $localFile;
     }
 
-    public function handleConfirmedOrders($orderId)
-    {
-        $status = $this->rackbeatClient->checkOrderStatus($orderId);
-        if ($status === 'confirmed') {
-            $orderData = $this->rackbeatClient->getOrderData($orderId);
-            $this->updateXmlFile($orderData);
-            $this->sftpClient->uploadFile('/path/to/local/directory/' . $orderId . '.xml', $orderId . '.xml');
-        }
-    }
+    // public function handleConfirmedOrders($orderId)
+    // {
+    //     $status = $this->rackbeatClient->checkOrderStatus($orderId);
+    //     if ($status === 'confirmed') {
+    //         $orderData = $this->rackbeatClient->getOrderData($orderId);
+    //         $this->updateXmlFile($orderData);
+    //         $this->sftpClient->uploadFile('/path/to/local/directory/' . $orderId . '.xml', $orderId . '.xml');
+    //     }
+    // }
 
-    public function updateXmlFile($orderData)
-    {
-        $xmlContent = $this->xmlHelper->generateXml($orderData);
-        file_put_contents('/path/to/local/directory/' . $orderData['id'] . '.xml', $xmlContent);
-    }
+    // public function updateXmlFile($orderData)
+    // {
+    //     $xmlContent = $this->xmlHelper->generateXml($orderData);
+    //     file_put_contents('/path/to/local/directory/' . $orderData['id'] . '.xml', $xmlContent);
+    // }
 
     public function confirmBookedOrders()
     {
