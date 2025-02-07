@@ -20,10 +20,19 @@
     "out_816145728_20250120-014402-1737377042524.xml": {
         "id": 1031,
         "file": "\/Library\/WebServer\/Documents\/ftp-order-sync-rackbeat\/php-ftp-rackbeat-integration\/orders\/out_816145728_20250120-014402-1737377042524.xml",
-        "send_to_rackbeat": 1,
+        "send_to_rackbeat": 0,
         "is_confirmed": 0,
         "order_send_to_remote": 0,
         "rackbeat_send_time": "2025-01-27 13:39:06",
         "confirmed_time": null
+    },
+    "out_820898803_20250131-034854-1738334934699.xml": {
+        "id": 1037,
+        "file": "\/Library\/WebServer\/Documents\/ftp-order-sync-rackbeat\/php-ftp-rackbeat-integration\/orders\/out_820898803_20250131-034854-1738334934699.xml",
+        "send_to_rackbeat": 1,
+        "is_confirmed": 1,
+        "order_send_to_remote": 1,
+        "rackbeat_send_time": "2025-02-07 05:42:23",
+        "confirmed_time": "2025-02-07 06:14:36"
     }
 }
