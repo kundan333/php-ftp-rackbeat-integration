@@ -160,6 +160,10 @@ class OrderProcessor
                 if ($fetchedOrder && isset($fetchedOrder['is_booked']) && $fetchedOrder['is_booked'] === true) {
                     $orders[$key]['is_confirmed'] = 1;
                     $orders[$key]['confirmed_time'] = date('Y-m-d H:i:s');
+                    
+                    // Create order response XML
+                    $this->createOrderResponse($fetchedOrder, $data['file']);
+                    
                     $changed = true;
                 }
             }
@@ -196,5 +200,70 @@ class OrderProcessor
         if ($changed) {
             file_put_contents($orderStatusFile, json_encode($orders, JSON_PRETTY_PRINT));
         }
+    }
+
+    public function createOrderResponse($rackbeatOrder, $originalOrderFile) 
+    {
+        $responseDir = __DIR__ . '/../order-response';
+        if (!is_dir($responseDir)) {
+            mkdir($responseDir, 0777, true);
+        }
+
+        // Create XML document
+        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><OrderResponse></OrderResponse>');
+        
+        // Add namespaces
+        $xml->addAttribute('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2');
+        $xml->addAttribute('xmlns:cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $xml->addAttribute('xmlns:cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+
+        // Add required elements
+        $xml->addChild('cbc:CustomizationID', 'urn:fdc:peppol.eu:poacc:trns:order_response_advanced:3');
+        $xml->addChild('cbc:ProfileID', 'urn:fdc:peppol.eu:poacc:bis:advanced_ordering:3');
+        $xml->addChild('cbc:ID', $rackbeatOrder['number']);
+        $xml->addChild('cbc:IssueDate', date('Y-m-d'));
+        $xml->addChild('cbc:IssueTime', date('H:i:s'));
+        
+        // Set response code (CA = Change)
+        $xml->addChild('cbc:OrderResponseCode', 'CA');
+        
+        // Add currency
+        $xml->addChild('cbc:DocumentCurrencyCode', $rackbeatOrder['currency']);
+
+        // Add seller party
+        $sellerParty = $xml->addChild('cac:SellerSupplierParty')->addChild('cac:Party');
+        $sellerParty->addChild('cbc:EndpointID', '7598000000128')->addAttribute('schemeID', '0088');
+        
+        // Add buyer party
+        $buyerParty = $xml->addChild('cac:BuyerCustomerParty')->addChild('cac:Party');
+        $buyerParty->addChild('cbc:EndpointID', $rackbeatOrder['customer']['ean'])->addAttribute('schemeID', '0088');
+        
+        // Add order lines
+        foreach ($rackbeatOrder['lines'] as $line) {
+            $orderLine = $xml->addChild('cac:OrderLine');
+            $lineItem = $orderLine->addChild('cac:LineItem');
+            
+            $lineItem->addChild('cbc:ID', $line['id']);
+            $lineItem->addChild('cbc:Quantity', $line['quantity'])->addAttribute('unitCode', 'C62');
+            
+            // Add price
+            $price = $lineItem->addChild('cac:Price');
+            $price->addChild('cbc:PriceAmount', $line['line_price'])->addAttribute('currencyID', $rackbeatOrder['currency']);
+            
+            // Add item details
+            $item = $lineItem->addChild('cac:Item');
+            $item->addChild('cbc:Name', $line['name']);
+            
+            // Add seller's item identification
+            $sellersItem = $item->addChild('cac:SellersItemIdentification');
+            $sellersItem->addChild('cbc:ID', $line['item']['number']);
+        }
+
+        // Save the response file
+        $responseFilename = basename($originalOrderFile);
+        $responseFilePath = $responseDir . '/' . $responseFilename;
+        $xml->asXML($responseFilePath);
+        
+        return $responseFilePath;
     }
 }
