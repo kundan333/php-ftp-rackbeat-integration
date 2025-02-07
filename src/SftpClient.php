@@ -53,6 +53,29 @@ class SftpClient
         }
     }
 
+    public function copyRemoteFile($sourceFile, $destinationFile)
+    {
+        if ($this->login) {
+            // Get file contents from the source file
+            $data = $this->sftp->get($sourceFile);
+            if ($data === false) {
+                error_log("Failed to read source file: " . $sourceFile);
+                return false;
+            }
+
+            // Write the data to the destination file
+            $result = $this->sftp->put($destinationFile, $data);
+            if (!$result) {
+                error_log("Failed to write destination file: " . $destinationFile);
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function __destruct()
     {
         $this->sftp->disconnect();

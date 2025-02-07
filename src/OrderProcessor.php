@@ -150,10 +150,12 @@ class OrderProcessor
         foreach ($orders as $key => $data) {
             if (isset($data['is_confirmed']) && $data['is_confirmed'] == 0) {
                 // Ensure an order_number is stored (update your processOrders to save it if not already)
-                if (!isset($data['order_number']) || empty($data['order_number'])) {
+                if (!isset($data['id']) || empty($data['id'])) {
                     continue;
                 }
-                $fetchedOrder = $this->rackbeatClient->getOrderByNumber($data['order_number']);
+                
+                $fetchedOrder = $this->rackbeatClient->getOrderByNumber($data['id']);
+
                 // Check if the order is booked. Adjust the condition based on your API response.
                 if ($fetchedOrder && isset($fetchedOrder['is_booked']) && $fetchedOrder['is_booked'] === true) {
                     $orders[$key]['is_confirmed'] = 1;
@@ -180,9 +182,12 @@ class OrderProcessor
                 && (isset($order['order_send_to_remote']) && $order['order_send_to_remote'] == 0)) {
                 
                 // Calculate remote file path using the remote confirmation directory and the file's basename
-                $remoteFilePath = rtrim($remoteConfirmationDirectory, '/') . '/' . basename($order['file']);
+                $remoteFilePath = $remoteConfirmationDirectory. '/' . basename($order['file']);
+                echo $remoteFilePath;
                 // Upload the file via SFTP
-                if ($this->sftpClient->uploadFile($order['file'], $remoteFilePath)) {
+                $file_upload = $this->sftpClient->uploadFile($order['file'], $remoteFilePath);
+                
+                if ($file_upload ) {
                     $order['order_send_to_remote'] = 1;
                     $changed = true;
                 }
