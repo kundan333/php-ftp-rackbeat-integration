@@ -1,6 +1,8 @@
 <?php
 namespace App;
 
+use DateTime;
+
 
 class OrderProcessor
 {
@@ -213,41 +215,58 @@ class OrderProcessor
         $originalXml->registerXPathNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
         $originalXml->registerXPathNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
     
-        // Create XML with correct structure
-        $xmlString = '<?xml version="1.0" encoding="UTF-8"?>' .
-            '<OrderResponse 
-                xmlns="urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2" 
+        // Build XML in correct order
+        $xmlString = '<?xml version="1.0" encoding="UTF-8"?>' . "\n" .
+            '<OrderResponse xmlns="urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2" 
                 xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" 
-                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">' .
-            '<cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response_advanced:3</cbc:CustomizationID>' .
-            '<cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:advanced_ordering:3</cbc:ProfileID>' .
-            '<cbc:ID>' . $rackbeatOrder['number'] . '</cbc:ID>' .
-            '<cbc:IssueDate>' . date('Y-m-d') . '</cbc:IssueDate>' .
-            '<cbc:IssueTime>' . date('H:i:s') . '</cbc:IssueTime>' .
-            '<cbc:OrderResponseCode>CA</cbc:OrderResponseCode>' . // Changed from AP to CA
-            '<cbc:DocumentCurrencyCode>' . $rackbeatOrder['currency'] . '</cbc:DocumentCurrencyCode>' .
-            '<cac:OrderReference>' .
-            '<cbc:ID>' . (string)$originalXml->xpath('//cbc:ID')[0] . '</cbc:ID>' .
-            '</cac:OrderReference>' .
-            '<cac:SellerSupplierParty>' .
-            '<cac:Party>' .
-            '<cbc:EndpointID schemeID="0088">7080010019356</cbc:EndpointID>' .
-            '<cac:PartyIdentification>' .
-            '<cbc:ID schemeID="0192">997066588</cbc:ID>' .
-            '</cac:PartyIdentification>' .
-            '<cac:PartyLegalEntity>' .
-            '<cbc:RegistrationName>HARTMAN NORDIC AS</cbc:RegistrationName>' .
-            '</cac:PartyLegalEntity>' .
-            '</cac:Party>' .
-            '</cac:SellerSupplierParty>' .
-            '<cac:BuyerCustomerParty>' .
-            '<cac:Party>' .
-            '<cbc:EndpointID schemeID="0088">' . (string)$originalXml->xpath('//cac:BuyerCustomerParty//cbc:EndpointID')[0] . '</cbc:EndpointID>' .
-            '<cac:PartyLegalEntity>' .
-            '<cbc:RegistrationName>' . (string)$originalXml->xpath('//cac:BuyerCustomerParty//cac:PartyName/cbc:Name')[0] . '</cbc:RegistrationName>' .
-            '</cac:PartyLegalEntity>' .
-            '</cac:Party>' .
-            '</cac:BuyerCustomerParty>';
+                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">' . "\n" .
+            '    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response:3</cbc:CustomizationID>' . "\n" .
+            '    <cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:ordering:3</cbc:ProfileID>' . "\n" .
+            '    <cbc:ID>' . $rackbeatOrder['number'] . '</cbc:ID>' . "\n" .
+            '    <cbc:SalesOrderID>' . $rackbeatOrder['number'] . '-' . date('Ymd') . '</cbc:SalesOrderID>' . "\n" .
+            '    <cbc:IssueDate>' . date('Y-m-d') . '</cbc:IssueDate>' . "\n" .
+            '    <cbc:IssueTime>' . date('H:i:s') . '</cbc:IssueTime>' . "\n" .
+            '    <cbc:OrderResponseCode>CA</cbc:OrderResponseCode>' . "\n" .
+            '    <cbc:Note>Order processed by Rackbeat</cbc:Note>' . "\n" .
+            '    <cbc:DocumentCurrencyCode>' . $rackbeatOrder['currency'] . '</cbc:DocumentCurrencyCode>' . "\n" .
+            '    <cbc:CustomerReference>' . $rackbeatOrder['customer']['number'] . '</cbc:CustomerReference>' . "\n" .
+            '    <cac:OrderReference>' . "\n" .
+            '        <cbc:ID>' . (string)$originalXml->xpath('//cbc:ID')[0] . '</cbc:ID>' . "\n" .
+            '    </cac:OrderReference>' . "\n" .
+            '    <cac:SellerSupplierParty>' . "\n" .
+            '        <cac:Party>' . "\n" .
+            '            <cbc:EndpointID schemeID="0088">7080010019356</cbc:EndpointID>' . "\n" .
+            '            <cac:PartyIdentification>' . "\n" .
+            '                <cbc:ID schemeID="0192">997066588</cbc:ID>' . "\n" .
+            '            </cac:PartyIdentification>' . "\n" .
+            '            <cac:PartyLegalEntity>' . "\n" .
+            '                <cbc:RegistrationName>HARTMAN NORDIC AS</cbc:RegistrationName>' . "\n" .
+            '            </cac:PartyLegalEntity>' . "\n" .
+            '        </cac:Party>' . "\n" .
+            '    </cac:SellerSupplierParty>' . "\n" .
+            '    <cac:BuyerCustomerParty>' . "\n" .
+            '        <cac:Party>' . "\n" .
+            '            <cbc:EndpointID schemeID="0088">' . (string)$originalXml->xpath('//cac:BuyerCustomerParty//cbc:EndpointID')[0] . '</cbc:EndpointID>' . "\n" .
+            '            <cac:PartyLegalEntity>' . "\n" .
+            '                <cbc:RegistrationName>' . (string)$originalXml->xpath('//cac:BuyerCustomerParty//cac:PartyName/cbc:Name')[0] . '</cbc:RegistrationName>' . "\n" .
+            '            </cac:PartyLegalEntity>' . "\n" .
+            '        </cac:Party>' . "\n" .
+            '    </cac:BuyerCustomerParty>' . "\n";
+
+        // Get delivery dates from Rackbeat order
+
+        $startDateTime = new \DateTime($rackbeatOrder['booked_at']);
+        $endDateTime = new \DateTime($rackbeatOrder['due_date']);
+        
+        // Add delivery section with actual dates
+        $xmlString .= '    <cac:Delivery>' . "\n" .
+            '        <cac:PromisedDeliveryPeriod>' . "\n" .
+            '            <cbc:StartDate>' . $startDateTime->format('Y-m-d') . '</cbc:StartDate>' . "\n" .
+            '            <cbc:StartTime>' . $startDateTime->format('H:i:s') . '</cbc:StartTime>' . "\n" .
+            '            <cbc:EndDate>' . $endDateTime->format('Y-m-d') . '</cbc:EndDate>' . "\n" .
+            '            <cbc:EndTime>16:00:00</cbc:EndTime>' . "\n" .
+            '        </cac:PromisedDeliveryPeriod>' . "\n" .
+            '    </cac:Delivery>' . "\n";
     
         // Add order lines only if response code is CA
         foreach ($rackbeatOrder['lines'] as $lineIndex => $line) {
@@ -275,10 +294,17 @@ class OrderProcessor
     
         $xmlString .= '</OrderResponse>';
     
+        // Save formatted XML
+        $dom = new \DOMDocument('1.0');
+        $dom->preserveWhiteSpace = false;
+        $dom->formatOutput = true;
+        $dom->loadXML($xmlString);
+        $formattedXml = $dom->saveXML();
+        
         // Save file
         $responseFilename = basename($originalOrderFile);
         $responseFilePath = $responseDir . '/' . $responseFilename;
-        file_put_contents($responseFilePath, $xmlString);
+        file_put_contents($responseFilePath, $formattedXml);
         
         return $responseFilePath;
     }

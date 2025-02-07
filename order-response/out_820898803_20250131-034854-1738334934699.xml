@@ -1,4 +1,62 @@
-<?xml version="1.0" encoding="UTF-8"?><OrderResponse 
-                xmlns="urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2" 
-                xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" 
-                xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response_advanced:3</cbc:CustomizationID><cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:advanced_ordering:3</cbc:ProfileID><cbc:ID>1037</cbc:ID><cbc:IssueDate>2025-02-07</cbc:IssueDate><cbc:IssueTime>06:14:36</cbc:IssueTime><cbc:OrderResponseCode>AP</cbc:OrderResponseCode><cbc:DocumentCurrencyCode>NOK</cbc:DocumentCurrencyCode><cac:OrderReference><cbc:ID>2812646</cbc:ID></cac:OrderReference><cac:SellerSupplierParty><cac:Party><cbc:EndpointID schemeID="0088">7080010019356</cbc:EndpointID><cac:PartyIdentification><cbc:ID schemeID="0192">997066588</cbc:ID></cac:PartyIdentification><cac:PartyLegalEntity><cbc:RegistrationName>HARTMAN NORDIC AS</cbc:RegistrationName></cac:PartyLegalEntity></cac:Party></cac:SellerSupplierParty><cac:BuyerCustomerParty><cac:Party><cbc:EndpointID schemeID="0088">7080004299368</cbc:EndpointID><cac:PartyLegalEntity><cbc:RegistrationName>Møbelringen Digital AS</cbc:RegistrationName></cac:PartyLegalEntity></cac:Party></cac:BuyerCustomerParty><cac:OrderLine><cac:LineItem><cbc:ID>36</cbc:ID><cbc:LineStatusCode>AP</cbc:LineStatusCode><cbc:Quantity unitCode="EA">1</cbc:Quantity><cac:Price><cbc:PriceAmount currencyID="NOK">325</cbc:PriceAmount></cac:Price><cac:Item><cbc:Name>Parasollfot 25 kg - lys granitt</cbc:Name><cac:SellersItemIdentification><cbc:ID>20031</cbc:ID></cac:SellersItemIdentification></cac:Item></cac:LineItem></cac:OrderLine></OrderResponse>
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderResponse xmlns="urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response:3</cbc:CustomizationID>
+  <cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:ordering:3</cbc:ProfileID>
+  <cbc:ID>1037</cbc:ID>
+  <cbc:SalesOrderID>1037-20250207</cbc:SalesOrderID>
+  <cbc:IssueDate>2025-02-07</cbc:IssueDate>
+  <cbc:IssueTime>06:44:36</cbc:IssueTime>
+  <cbc:OrderResponseCode>CA</cbc:OrderResponseCode>
+  <cbc:Note>Order processed by Rackbeat</cbc:Note>
+  <cbc:DocumentCurrencyCode>NOK</cbc:DocumentCurrencyCode>
+  <cbc:CustomerReference>505770</cbc:CustomerReference>
+  <cac:OrderReference>
+    <cbc:ID>2812646</cbc:ID>
+  </cac:OrderReference>
+  <cac:SellerSupplierParty>
+    <cac:Party>
+      <cbc:EndpointID schemeID="0088">7080010019356</cbc:EndpointID>
+      <cac:PartyIdentification>
+        <cbc:ID schemeID="0192">997066588</cbc:ID>
+      </cac:PartyIdentification>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>HARTMAN NORDIC AS</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:SellerSupplierParty>
+  <cac:BuyerCustomerParty>
+    <cac:Party>
+      <cbc:EndpointID schemeID="0088">7080004299368</cbc:EndpointID>
+      <cac:PartyLegalEntity>
+        <cbc:RegistrationName>Møbelringen Digital AS</cbc:RegistrationName>
+      </cac:PartyLegalEntity>
+    </cac:Party>
+  </cac:BuyerCustomerParty>
+  <cac:Delivery>
+    <cac:PromisedDeliveryPeriod>
+      <cbc:StartDate>2025-02-04</cbc:StartDate>
+      <cbc:StartTime>10:38:08</cbc:StartTime>
+      <cbc:EndDate>2025-02-07</cbc:EndDate>
+      <cbc:EndTime>16:00:00</cbc:EndTime>
+    </cac:PromisedDeliveryPeriod>
+  </cac:Delivery>
+  <cac:OrderLine>
+    <cac:LineItem>
+      <cbc:ID>36</cbc:ID>
+      <cbc:LineStatusCode>5</cbc:LineStatusCode>
+      <cbc:Quantity unitCode="EA">1</cbc:Quantity>
+      <cac:Price>
+        <cbc:PriceAmount currencyID="NOK">325</cbc:PriceAmount>
+      </cac:Price>
+      <cac:Item>
+        <cbc:Name>Parasollfot 25 kg - lys granitt</cbc:Name>
+        <cac:SellersItemIdentification>
+          <cbc:ID>20031</cbc:ID>
+        </cac:SellersItemIdentification>
+      </cac:Item>
+    </cac:LineItem>
+    <cac:OrderLineReference>
+      <cbc:LineID>1</cbc:LineID>
+    </cac:OrderLineReference>
+  </cac:OrderLine>
+</OrderResponse>
