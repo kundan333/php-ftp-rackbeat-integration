@@ -31,7 +31,7 @@ $orderProcessor->processOrders($config['order']['remote_order_directory'], $loca
 
 //check for confirm orders and sent the xml file to confirm directory
 $orderProcessor->confirmBookedOrders();
-$orderProcessor->sendConfirmedOrdersToRemote($config['order']['remote_confirmation_directory']);
+// $orderProcessor->sendConfirmedOrdersToRemote($config['order']['remote_confirmation_directory']);
 
 
 exit;

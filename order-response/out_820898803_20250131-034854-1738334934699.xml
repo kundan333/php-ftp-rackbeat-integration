@@ -3,9 +3,9 @@
   <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response:3</cbc:CustomizationID>
   <cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:ordering:3</cbc:ProfileID>
   <cbc:ID>1037</cbc:ID>
-  <cbc:SalesOrderID>1037-20250207</cbc:SalesOrderID>
-  <cbc:IssueDate>2025-02-07</cbc:IssueDate>
-  <cbc:IssueTime>06:44:36</cbc:IssueTime>
+  <cbc:SalesOrderID>1037-20250210</cbc:SalesOrderID>
+  <cbc:IssueDate>2025-02-10</cbc:IssueDate>
+  <cbc:IssueTime>05:13:05</cbc:IssueTime>
   <cbc:OrderResponseCode>CA</cbc:OrderResponseCode>
   <cbc:Note>Order processed by Rackbeat</cbc:Note>
   <cbc:DocumentCurrencyCode>NOK</cbc:DocumentCurrencyCode>
@@ -26,7 +26,7 @@
   </cac:SellerSupplierParty>
   <cac:BuyerCustomerParty>
     <cac:Party>
-      <cbc:EndpointID schemeID="0088">7080004299368</cbc:EndpointID>
+      <cbc:EndpointID schemeID="0088">7080001302962</cbc:EndpointID>
       <cac:PartyLegalEntity>
         <cbc:RegistrationName>Møbelringen Digital AS</cbc:RegistrationName>
       </cac:PartyLegalEntity>
@@ -34,15 +34,12 @@
   </cac:BuyerCustomerParty>
   <cac:Delivery>
     <cac:PromisedDeliveryPeriod>
-      <cbc:StartDate>2025-02-04</cbc:StartDate>
-      <cbc:StartTime>10:38:08</cbc:StartTime>
-      <cbc:EndDate>2025-02-07</cbc:EndDate>
-      <cbc:EndTime>16:00:00</cbc:EndTime>
+      <cbc:EndDate>2025-02-10</cbc:EndDate>
     </cac:PromisedDeliveryPeriod>
   </cac:Delivery>
   <cac:OrderLine>
     <cac:LineItem>
-      <cbc:ID>36</cbc:ID>
+      <cbc:ID>1</cbc:ID>
       <cbc:LineStatusCode>5</cbc:LineStatusCode>
       <cbc:Quantity unitCode="EA">1</cbc:Quantity>
       <cac:Price>
@@ -50,9 +47,15 @@
       </cac:Price>
       <cac:Item>
         <cbc:Name>Parasollfot 25 kg - lys granitt</cbc:Name>
+        <cac:BuyersItemIdentification>
+          <cbc:ID>296791</cbc:ID>
+        </cac:BuyersItemIdentification>
         <cac:SellersItemIdentification>
           <cbc:ID>20031</cbc:ID>
         </cac:SellersItemIdentification>
+        <cac:StandardItemIdentification>
+          <cbc:ID schemeID="0160">7071925200311</cbc:ID>
+        </cac:StandardItemIdentification>
       </cac:Item>
     </cac:LineItem>
     <cac:OrderLineReference>

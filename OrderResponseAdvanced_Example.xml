@@ -102,6 +102,14 @@
 			<cbc:LineID>1</cbc:LineID>
 		</cac:OrderLineReference>
 	</cac:OrderLine>
+		<cac:Delivery>
+		<cac:PromisedDeliveryPeriod>
+			<cbc:StartDate>2013-07-15</cbc:StartDate>
+			<cbc:StartTime>12:30:00</cbc:StartTime>
+			<cbc:EndDate>2013-07-16</cbc:EndDate>
+			<cbc:EndTime>18:00:00</cbc:EndTime>
+		</cac:PromisedDeliveryPeriod>
+	</cac:Delivery>
 	<cac:OrderLine>
 		<cac:LineItem>
 			<cbc:ID>2</cbc:ID>
