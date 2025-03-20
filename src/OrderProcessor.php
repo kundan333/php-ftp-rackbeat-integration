@@ -107,7 +107,7 @@ class OrderProcessor
             'is_confirmed' => $statusData['isConfirmed'] ?? 0,
             'order_send_to_remote' => $statusData['orderSendToRemote'] ?? 0,
             'rackbeat_send_time' => $statusData['rackbeatSendTime'] ?? null,
-            'confirmed_time' => $statusData['confirmedTime'] ?? null,
+            'updated_time' => $statusData['confirmedTime'] ?? null,
         ];
 
         file_put_contents($statusFile, json_encode($orderStatus, JSON_PRETTY_PRINT));
@@ -150,26 +150,47 @@ class OrderProcessor
         $orders = json_decode(file_get_contents($orderStatusFile), true);
         $changed = false;
         foreach ($orders as $key => $data) {
-            if (isset($data['is_confirmed']) && $data['is_confirmed'] == 0) {
-                // Ensure an order_number is stored (update your processOrders to save it if not already)
-                if (!isset($data['id']) || empty($data['id'])) {
-                    continue;
-                }
-                
-                $fetchedOrder = $this->rackbeatClient->getOrderByNumber($data['id']);
+            // Ensure an order_number is stored
+            if (!isset($data['id']) || empty($data['id'])) {
+                continue;
+            }
+            
+            $fetchedOrder = $this->rackbeatClient->getOrderByNumber($data['id']);
+            if (!$fetchedOrder) {
+                continue;
+            }
 
-                // Check if the order is booked. Adjust the condition based on your API response.
-                if ($fetchedOrder && isset($fetchedOrder['is_booked']) && $fetchedOrder['is_booked'] === true) {
+            // Handle unconfirmed orders (keep existing logic)
+            if (isset($data['is_confirmed']) && $data['is_confirmed'] == 0) {
+                // Check if the order is booked
+                if (isset($fetchedOrder['is_booked']) && $fetchedOrder['is_booked'] === true) {
                     $orders[$key]['is_confirmed'] = 1;
-                    $orders[$key]['confirmed_time'] = date('Y-m-d H:i:s');
+                    // Change confirmed_time to updated_time
+                    $orders[$key]['updated_time'] = $fetchedOrder['updated_at'];
+                    $changed = true;
                     
                     // Create order response XML
                     $this->createOrderResponse($fetchedOrder, $data['file']);
+                }
+            } 
+            // Handle already confirmed orders - check for updates
+            else if (isset($data['is_confirmed']) && $data['is_confirmed'] == 1) {
+                // Check if order has been updated since our last check
+                if (isset($fetchedOrder['updated_at']) && 
+                    (!isset($data['updated_time']) || 
+                     strtotime($fetchedOrder['updated_at']) > strtotime($data['updated_time']))) {
                     
+                    // Update the timestamp and send to FTP
+                    $orders[$key]['updated_time'] = $fetchedOrder['updated_at'];
                     $changed = true;
+                    
+                    // Create order response XML and send to FTP
+                    $this->createOrderResponse($fetchedOrder, $data['file']);
                 }
             }
         }
+                
+        // Save the updated status file
         if ($changed) {
             file_put_contents($orderStatusFile, json_encode($orders, JSON_PRETTY_PRINT));
         }
