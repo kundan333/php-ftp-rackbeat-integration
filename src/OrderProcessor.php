@@ -182,6 +182,8 @@ class OrderProcessor
                     
                     // Update the timestamp and send to FTP
                     $orders[$key]['updated_time'] = $fetchedOrder['updated_at'];
+
+                    $orders[$key]['order_send_to_remote'] = 0;
                     $changed = true;
                     
                     // Create order response XML and send to FTP
@@ -212,7 +214,10 @@ class OrderProcessor
                 $remoteFilePath = $remoteConfirmationDirectory. '/' . basename($order['file']);
                 echo $remoteFilePath;
                 // Upload the file via SFTP
-                $file_upload = $this->sftpClient->uploadFile($order['file'], $remoteFilePath);
+
+                $responseFile = __DIR__ . '/../order-response/'.basename($order['file']);
+
+                $file_upload = $this->sftpClient->uploadFile($responseFile, $remoteFilePath);
                 
                 if ($file_upload ) {
                     $order['order_send_to_remote'] = 1;
