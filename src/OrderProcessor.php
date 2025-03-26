@@ -295,34 +295,47 @@ class OrderProcessor
             '    </cac:Delivery>' . "\n";
     
         // Add order lines only if response code is CA
+        $lineID = 1;
         foreach ($rackbeatOrder['lines'] as $lineIndex => $line) {
-            $originalLineId = $lineIndex + 1; // Get original line ID
-            $lineID = 1;
+            // Build BuyersItemIdentification node only if it exists in the original XML
+            $buyersNodes = $originalXml->xpath('//cac:Item[cac:SellersItemIdentification/cbc:ID="' . $line['item']['number'] . '"]/cac:BuyersItemIdentification/cbc:ID');
+            $buyersXml = '';
+            if (!empty($buyersNodes) && !empty($buyersNodes[0])) {
+                $buyersXml = '<cac:BuyersItemIdentification>' . "\n" .
+                             '    <cbc:ID>' . $buyersNodes[0] . '</cbc:ID>' . "\n" .
+                             '</cac:BuyersItemIdentification>' . "\n";
+            }
+            
+            // Build StandardItemIdentification node if barcode is not empty
+            $standardXml = '';
+            if (isset($line['item']['barcode']) && !empty($line['item']['barcode'])) {
+                $standardXml = '<cac:StandardItemIdentification>' . "\n" .
+                               '    <cbc:ID schemeID="0160">' . $line['item']['barcode'] . '</cbc:ID>' . "\n" .
+                               '</cac:StandardItemIdentification>' . "\n";
+            }
+            
             $xmlString .= '<cac:OrderLine>' .
-                '<cac:LineItem>' .
-                '<cbc:ID>' . $lineID . '</cbc:ID>' .
-                '<cbc:LineStatusCode>5</cbc:LineStatusCode>' . // Using valid UNCL1229 code
-                '<cbc:Quantity unitCode="EA">' . $line['quantity'] . '</cbc:Quantity>' .
-                '<cac:Price>' .
-                '<cbc:PriceAmount currencyID="' . $rackbeatOrder['currency'] . '">' . $line['line_price'] . '</cbc:PriceAmount>' .
-                '</cac:Price>' .
-                '<cac:Item>' .
-                '<cbc:Name>' . htmlspecialchars($line['name'], ENT_XML1) . '</cbc:Name>' .
-        '        <cac:BuyersItemIdentification>' . "\n" .
-        '                    <cbc:ID>' .$originalXml->xpath('//cac:Item[cac:SellersItemIdentification/cbc:ID="' . $line['item']['number'] . '"]/cac:BuyersItemIdentification/cbc:ID')[0] . '</cbc:ID>' . "\n" .
-        '                </cac:BuyersItemIdentification>' . "\n" .
-        '                <cac:SellersItemIdentification>' . "\n" .
-        '                    <cbc:ID>' . $line['item']['number'] . '</cbc:ID>' . "\n" .
-        '                </cac:SellersItemIdentification>' . "\n" .
-        '                <cac:StandardItemIdentification>' . "\n" .
-        '                    <cbc:ID schemeID="0160">' . $line['item']['barcode'] . '</cbc:ID>' . "\n" .
-        '                </cac:StandardItemIdentification>' . "\n" .
-                '</cac:Item>' .
-                '</cac:LineItem>' .
-                '<cac:OrderLineReference>' .
-                '<cbc:LineID>' . $lineID . '</cbc:LineID>' .
-                '</cac:OrderLineReference>' .
-                '</cac:OrderLine>';
+                          '<cac:LineItem>' .
+                          '<cbc:ID>' . $lineID . '</cbc:ID>' .
+                          '<cbc:LineStatusCode>5</cbc:LineStatusCode>' .
+                          '<cbc:Quantity unitCode="EA">' . $line['quantity'] . '</cbc:Quantity>' .
+                          '<cac:Price>' .
+                          '<cbc:PriceAmount currencyID="' . $rackbeatOrder['currency'] . '">' . $line['line_price'] . '</cbc:PriceAmount>' .
+                          '</cac:Price>' .
+                          '<cac:Item>' .
+                          '<cbc:Name>' . htmlspecialchars($line['name'], ENT_XML1) . '</cbc:Name>' .
+                          $buyersXml .
+                          '<cac:SellersItemIdentification>' . "\n" .
+                          '    <cbc:ID>' . $line['item']['number'] . '</cbc:ID>' . "\n" .
+                          '</cac:SellersItemIdentification>' . "\n" .
+                          $standardXml .
+                          '</cac:Item>' .
+                          '</cac:LineItem>' .
+                          '<cac:OrderLineReference>' .
+                          '<cbc:LineID>' . $lineID . '</cbc:LineID>' .
+                          '</cac:OrderLineReference>' .
+                          '</cac:OrderLine>';
+            $lineID += 1;    
         }
     
         $xmlString .= '</OrderResponse>';
