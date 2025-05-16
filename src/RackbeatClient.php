@@ -86,7 +86,7 @@ class RackbeatClient
 
 
 
-        $response = $this->client->post('api/orders/drafts', [
+        $response = $this->client->post('api/orders', [
             'json' => $orderPayload,
         ]);
 

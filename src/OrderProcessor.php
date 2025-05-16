@@ -160,13 +160,14 @@ class OrderProcessor
                 continue;
             }
 
-            // Handle unconfirmed orders (keep existing logic)
+            // Handle unconfirmed orders (first time confirmation)
             if (isset($data['is_confirmed']) && $data['is_confirmed'] == 0) {
                 // Check if the order is booked
                 if (isset($fetchedOrder['is_booked']) && $fetchedOrder['is_booked'] === true) {
                     $orders[$key]['is_confirmed'] = 1;
-                    // Change confirmed_time to updated_time
                     $orders[$key]['updated_time'] = $fetchedOrder['updated_at'];
+                    // Set to 1 to prevent sending on first confirmation
+                    $orders[$key]['order_send_to_remote'] = 1; 
                     $changed = true;
                     
                     // Create order response XML
@@ -177,16 +178,16 @@ class OrderProcessor
             else if (isset($data['is_confirmed']) && $data['is_confirmed'] == 1) {
                 // Check if order has been updated since our last check
                 if (isset($fetchedOrder['updated_at']) && 
-                    (!isset($data['updated_time']) || 
-                     strtotime($fetchedOrder['updated_at']) > strtotime($data['updated_time']))) {
+                    isset($data['updated_time']) && 
+                    strtotime($fetchedOrder['updated_at']) > strtotime($data['updated_time'])) {
                     
-                    // Update the timestamp and send to FTP
+                    // This is a subsequent update after initial confirmation
+                    // Update the timestamp and mark for sending to remote
                     $orders[$key]['updated_time'] = $fetchedOrder['updated_at'];
-
-                    $orders[$key]['order_send_to_remote'] = 0;
+                    $orders[$key]['order_send_to_remote'] = 0; // Mark for sending
                     $changed = true;
                     
-                    // Create order response XML and send to FTP
+                    // Create/update order response XML
                     $this->createOrderResponse($fetchedOrder, $data['file']);
                 }
             }
