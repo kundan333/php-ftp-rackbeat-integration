@@ -30,14 +30,39 @@ class RackbeatClient
         // Look up the customer in Rackbeat using the EAN number
         $customer = $this->getCustomerByEan($orderData['customer_ean']);
 
-        //var_dump($customer['number']);exit();
-
         if (!$customer) {
             throw new \Exception('Customer not found with ean: ' . $orderData['customer_ean']);
         }
 
         $employeeId= $this->getEmployeeIDName('Ordrekontor MR');
-        
+
+        // --- Fallback SKU logic for order lines ---
+        $orderLines = [];
+        foreach ($orderData['order_lines'] as $line) {
+            $sku = $line['item_id'];
+            $name = isset($line['name']) ? $line['name'] : '';
+            $quantity = $line['quantity'];
+            // Check if SKU exists in Rackbeat
+            $productExists = $this->checkProductExists($sku);
+            if (!$productExists) {
+                $sku = 'mobelringen';
+            }
+            $orderLines[] = [
+                'item_id' => $sku,
+                'quantity' => $quantity,
+                'name' => $name,
+            ];
+        }
+
+        // --- Validate email/phone fields ---
+        $email = $orderData['delivery_address_email'];
+        $phone = $orderData['delivery_address_phone'];
+        if (!$this->isValidEmail($email)) {
+            $email = '';
+        }
+        if (!$this->isValidPhone($phone)) {
+            $phone = '';
+        }
 
         // Create the order in Rackbeat
         $orderPayload = [
@@ -45,54 +70,37 @@ class RackbeatClient
             'layout_id' => $customer['layout_id'],
             'employee_id' => $employeeId,
             'our_reference_id' => $employeeId, //Ordrekontor MR
-            // 'delivery_responsible_id' => null,
-            // 'your_reference_id' => null,
             'payment_terms_id' => $customer['payment_terms_id'],
-            // 'delivery_terms' => null,
-            // 'other_reference' => $orderData['their_reference']??'',
             'vat_zone' => 'domestic',
             'heading' => $orderData['order_number'],
             'currency' => 'NOK',
-            // 'currency_rate' => null,
-            // 'number' => null,
-            // 'barcode' => null,
-            // 'pdf_layout' => null,
-            'lines' => $orderData['order_lines'],
-            // 'general_discount' => null,
+            'lines' => $orderLines,
             'deliver_at' => $orderData['delivery_date'],
             'order_date' => date('Y-m-d'),
-            // 'note' => null,
             'address_name' => $orderData['address_name'],
             'address_street' => $orderData['address_street'],
             'address_street2' => $orderData['address_street2'],
-            // 'address_state' => null,
             'address_city' => $orderData['address_city'],
             'address_zipcode' => $orderData['address_zipcode'],
             'address_country' => $orderData['address_country'],
             'delivery_address_name' => $orderData['delivery_address_name'],
             'delivery_address_street' => $orderData['delivery_address_street'],
             'delivery_address_street2' =>  $orderData['delivery_address_street2'],
-            // 'delivery_address_state' => null,
             'delivery_address_city' => $orderData['delivery_address_city'],
             'delivery_address_zipcode' => $orderData['delivery_address_zipcode'],
             'delivery_address_country' => $orderData['delivery_address_country'],
             'billing_address' => [],
             'delivery_address' => [
-                'email'=>$orderData['delivery_address_email'],
-            'phone'=>$orderData['delivery_address_phone']
-        ],
-            // 'custom_fields' => null,
+                'email'=>$email,
+                'phone'=>$phone
+            ],
         ];
-
-
 
         $response = $this->client->post('api/orders', [
             'json' => $orderPayload,
         ]);
 
         $responseData = json_decode($response->getBody(), true);
-
-       // file_put_contents(__DIR__ . '/response.txt', json_encode($responseData, JSON_PRETTY_PRINT));
 
         if (!isset($responseData['order']['number'])) {
             return null;
@@ -152,21 +160,15 @@ class RackbeatClient
     {
         $lines = [];
         foreach ($orderLines as $line) {
+            $itemId = (string) $line->xpath('cac:LineItem/cac:Item/cac:SellersItemIdentification/cbc:ID')[0];
+            $nameNode = $line->xpath('cac:LineItem/cac:Item/cbc:Name');
+            $name = isset($nameNode[0]) ? (string)$nameNode[0] : '';
             $lines[] = [
-                'item_id' => (string) $line->xpath('cac:LineItem/cac:Item/cac:SellersItemIdentification/cbc:ID')[0],
-                // 'name' => (string) $line->xpath('cac:LineItem/cac:Item/cbc:Name')[0],
+                'item_id' => $itemId,
+                'name' => $name,
                 'quantity' => (string) $line->xpath('cac:LineItem/cbc:Quantity')[0],
-                // 'line_price' => (string) $line->xpath('cac:LineItem/cbc:LineExtensionAmount')[0],
-                // 'cost_price' => null,
-                // 'variations' => [],
-                // 'location_id' => null,
-                // 'discount_percentage' => null,
-                // 'vat_percentage' => (string) $line->xpath('cac:LineItem/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent')[0],
-                // 'unit_id' => (string) $line->xpath('cac:LineItem/cbc:Quantity/@unitCode')[0],
-                // 'custom_fields' => [],
             ];
         }
-        // var_dump($lines);exit;
         return $lines;
     }
 
@@ -242,6 +244,30 @@ class RackbeatClient
 
     }
 
+    // Helper to check if a product exists in Rackbeat
+    private function checkProductExists($sku)
+    {
+        try {
+            $response = $this->client->get('api/products', [
+                'query' => ['simple_filter[number]' => $sku],
+            ]);
+            $data = json_decode($response->getBody(), true);
+            return isset($data['products']) && count($data['products']) > 0;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 
+    // Helper to validate email
+    private function isValidEmail($email)
+    {
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    }
+
+    // Helper to validate phone (simple, accepts digits, spaces, +, -)
+    private function isValidPhone($phone)
+    {
+        return preg_match('/^[0-9 +\-]{6,20}$/', $phone);
+    }
 
 }
