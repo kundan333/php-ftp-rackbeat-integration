@@ -248,12 +248,17 @@ class RackbeatClient
     private function checkProductExists($sku)
     {
         try {
-            $response = $this->client->get('api/products', [
-                'query' => ['simple_filter[number]' => $sku],
-            ]);
-            $data = json_decode($response->getBody(), true);
-            return isset($data['products']) && count($data['products']) > 0;
+            $response = $this->client->get("api/products/{$sku}");
+            $data = json_decode((string) $response->getBody(), true);
+            return isset($data['product']);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getResponse()->getStatusCode() === 404) {
+                return false;
+            }
+            error_log("Rackbeat API client error for SKU {$sku}: " . $e->getMessage());
+            return false;
         } catch (\Exception $e) {
+            error_log("Error checking for product SKU {$sku}: " . $e->getMessage());
             return false;
         }
     }
